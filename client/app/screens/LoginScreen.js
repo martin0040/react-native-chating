@@ -24,7 +24,7 @@ export default function LoginScreen({ navigation }) {
       setPassword({ ...password, error: passwordError });
       return;
     }else {
-      await fetch('http://localhost:8080/api/auth/signin', {
+      await fetch('http://localhost:4000/api/auth/signin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

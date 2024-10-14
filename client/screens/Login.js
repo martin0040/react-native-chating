@@ -3,46 +3,64 @@ import {
 	Text,
 	SafeAreaView,
 	View,
-	TextInput,
 	Pressable,
 	Alert,
+	TouchableOpacity
 } from "react-native";
+import TextInput from "../components/TextInput";
+import Button from "../components/Button";
+import socket from "../utils/socket";
+import { emailValidator } from "../helpers/emailValidator";
+import { passwordValidator } from "../helpers/passwordValidator";
 import { styles } from "../utils/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Login = ({ navigation }) => {
-	const [username, setUsername] = useState("");
+	const [email, setEmail] = useState({ value: "", error: "" });
+	const [password, setPassword] = useState({ value: "", error: "" });
 
 	const storeUsername = async () => {
 		try {
-			await AsyncStorage.setItem("username", username);
-			navigation.navigate("Chat");
+			await AsyncStorage.setItem("useremail", email.value);
+			window.location.reload()
+			console.log("login success")
 		} catch (e) {
-			Alert.alert("Error! While saving username");
+			Alert.alert("Error! While saving useremail");
 		}
 	};
 
-	const handleSignIn = () => {
-		if (username.trim()) {
-			storeUsername();
+	const onLoginPressed = async () => {
+
+		const emailError = emailValidator(email.value);
+		const passwordError = passwordValidator(password.value);
+		if (emailError || passwordError) {
+			setEmail({ ...email, error: emailError });
+			setPassword({ ...password, error: passwordError });
+			return;
 		} else {
-			Alert.alert("Username is required.");
-		}
-	};
+			await fetch('http://localhost:4000/api/auth/signin', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					password: password.value,
+					email: email.value,
+				})
+			})
+				.then(async (responseJson) => {
+					alert("User signin success");
+					socket.emit("join", email.value);
+					await storeUsername();
+				})
+				.catch((error) => {
+					console.error(error);
+				});
 
-	useLayoutEffect(() => {
-		const getUsername = async () => {
-			try {
-				const value = await AsyncStorage.getItem("username");
-				if (value !== null) {
-					navigation.navigate("Chat");
-				}
-			} catch (e) {
-				console.error("Error while loading username!");
-			}
-		};
-		getUsername();
-	}, []);
+		}
+		await storeUsername();
+
+	};
 
 	return (
 		<SafeAreaView style={styles.loginscreen}>
@@ -50,34 +68,41 @@ const Login = ({ navigation }) => {
 				<Text style={styles.loginheading}>Sign in</Text>
 				<View style={styles.logininputContainer}>
 					<TextInput
-						autoCorrect={false}
-						placeholder='Enter your username'
-						style={styles.logininput}
-						onChangeText={(value) => setUsername(value)}
+						label="Email"
+						returnKeyType="next"
+						value={email.value}
+						onChangeText={(text) => setEmail({ value: text, error: "" })}
+						error={!!email.error}
+						errorText={email.error}
+						autoCapitalize="none"
+						autoCompleteType="email"
+						textContentType="emailAddress"
+						keyboardType="email-address"
 					/>
-				</View>
-
-				<Pressable onPress={handleSignIn} style={styles.loginbutton}>
-					<View>
-						<Text style={styles.loginbuttonText}>Get Started</Text>
+					<TextInput
+						label="Password"
+						returnKeyType="done"
+						value={password.value}
+						onChangeText={(text) => setPassword({ value: text, error: "" })}
+						error={!!password.error}
+						errorText={password.error}
+						secureTextEntry
+					/>
+					<Button mode="contained" onPress={onLoginPressed}>
+						Log in
+					</Button>
+					<View style={styles.row}>
+						<Text>You do not have an account yet?</Text>
 					</View>
-				</Pressable>
+					<View style={styles.row}>
+						<TouchableOpacity onPress={() => navigation.navigate("Register")}>
+							<Text style={styles.link}>Create !</Text>
+						</TouchableOpacity>
+					</View>
+				</View>
 			</View>
 		</SafeAreaView>
 	);
 };
 
 export default Login;
-
-// import { View, Text, SafeAreaView } from "react-native";
-// import React from "react";
-
-// const Login = () => {
-// 	return (
-// 		<SafeAreaView>
-// 			<Text>Hello World</Text>
-// 		</SafeAreaView>
-// 	);
-// };
-
-// export default Login;

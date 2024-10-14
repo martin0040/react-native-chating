@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import { theme } from "../core/theme";
 
 export const styles = StyleSheet.create({
     loginscreen: {
@@ -129,6 +130,12 @@ export const styles = StyleSheet.create({
         paddingVertical: 50,
         paddingHorizontal: 20,
     },
+    closeButton: {
+        position: 'absolute',
+        right: "0px",
+        top: "-40px",
+        fontSize: "20px"
+    },
     modalinput: {
         borderWidth: 2,
         padding: 15,
@@ -145,7 +152,7 @@ export const styles = StyleSheet.create({
         marginBottom: 15,
     },
     mmessage: {
-        maxWidth: "50%",
+        maxWidth: "90%",
         backgroundColor: "#f5ccc2",
         padding: 15,
         borderRadius: 10,
@@ -183,5 +190,13 @@ export const styles = StyleSheet.create({
     },
     ctime: {
         opacity: 0.5,
+    },
+    link: {
+        fontWeight: "bold",
+        color: theme.colors.primary,
+    },
+    row: {
+        flexDirection: "row",
+        marginTop: 4,
     },
 });

@@ -5,21 +5,21 @@ import MessageComponent from "../components/MessageComponent";
 import { styles } from "../utils/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const Messaging = ({ route, navigation }) => {
+const Messaging = ({ route, navigation, partner }) => {
 	const [user, setUser] = useState("");
-	const { name, id } = route.params;
+	const { name, id } = partner;
 
 	const [chatMessages, setChatMessages] = useState([]);
 	const [message, setMessage] = useState("");
 
 	const getUsername = async () => {
 		try {
-			const value = await AsyncStorage.getItem("username");
+			const value = await AsyncStorage.getItem("useremail");
 			if (value !== null) {
 				setUser(value);
 			}
 		} catch (e) {
-			console.error("Error while loading username!");
+			console.error("Error while loading useremail!");
 		}
 	};
 
@@ -35,24 +35,26 @@ const Messaging = ({ route, navigation }) => {
 				: `${new Date().getMinutes()}`;
 
 		if (user) {
-			socket.emit("newMessage", {
+			socket.emit("new_message", {
 				message,
-				room_id: id,
-				user,
+				receiver: id,
+				sender: user,
 				timestamp: { hour, mins },
 			});
 		}
 	};
 
 	useLayoutEffect(() => {
-		navigation.setOptions({ title: name });
+		// navigation.setOptions({ title: name });
 		getUsername();
-		socket.emit("findRoom", id);
-		socket.on("foundRoom", (roomChats) => setChatMessages(roomChats));
 	}, []);
 
 	useEffect(() => {
-		socket.on("foundRoom", (roomChats) => setChatMessages(roomChats));
+		socket.on("new_message", ({ message, receiver, sender, timestamp }) => {
+			setChatMessages(chatMessages => {
+				return [...chatMessages, { message, receiver, sender, timestamp }]
+			})
+		});
 	}, [socket]);
 
 	return (
@@ -63,16 +65,14 @@ const Messaging = ({ route, navigation }) => {
 					{ paddingVertical: 15, paddingHorizontal: 10 },
 				]}
 			>
-				{chatMessages[0] ? (
+				{chatMessages[0] && (
 					<FlatList
 						data={chatMessages}
-						renderItem={({ item }) => (
-							<MessageComponent item={item} user={user} />
+						renderItem={({ item }, idx) => (
+							<MessageComponent key={idx} item={item} user={user} />
 						)}
-						keyExtractor={(item) => item.id}
+						keyExtractor={(item, idx) => idx}
 					/>
-				) : (
-					""
 				)}
 			</View>
 
@@ -90,6 +90,7 @@ const Messaging = ({ route, navigation }) => {
 					</View>
 				</Pressable>
 			</View>
+
 		</View>
 	);
 };

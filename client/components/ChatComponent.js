@@ -1,22 +1,18 @@
 import { View, Text, Pressable } from "react-native";
 import React, { useLayoutEffect, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
 import { styles } from "../utils/styles";
 
-const ChatComponent = ({ item }) => {
-	const navigation = useNavigation();
+const ChatComponent = ({ item, setPartner, setVisible }) => {
 	const [messages, setMessages] = useState({});
-
+	console.log(item)
 	useLayoutEffect(() => {
 		setMessages(item.messages[item.messages.length - 1]);
 	}, []);
 
 	const handleNavigation = () => {
-		navigation.navigate("Messaging", {
-			id: item.id,
-			name: item.name,
-		});
+		setPartner(item);
+		setVisible(true);
 	};
 
 	return (
@@ -30,7 +26,7 @@ const ChatComponent = ({ item }) => {
 
 			<View style={styles.crightContainer}>
 				<View>
-					<Text style={styles.cusername}>{item.name}</Text>
+					<Text style={styles.cusername}>{item.email}</Text>
 
 					<Text style={styles.cmessage}>
 						{messages?.text ? messages.text : "Tap to start chatting"}
